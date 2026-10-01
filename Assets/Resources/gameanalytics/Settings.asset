@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f518568847bd03cb9eccae87ad188143, type: 3}
+  m_Name: "Settings"
+  m_EditorClassIdentifier: 
+  TotalMessagesSubmitted: 0
+  TotalMessagesFailed: 0
+  DesignMessagesSubmitted: 0
+  DesignMessagesFailed: 0
+  QualityMessagesSubmitted: 0
+  QualityMessagesFailed: 0
+  ErrorMessagesSubmitted: 0
+  ErrorMessagesFailed: 0
+  BusinessMessagesSubmitted: 0
+  BusinessMessagesFailed: 0
+  UserMessagesSubmitted: 0
+  UserMessagesFailed: 0
+  CustomArea: 
+  gameKey:
+  - "b62b3becfb14da21f1f3fea0484c04af"
+  - "cf434f07f5ec0ef05bf658f8d261d633"
+  secretKey:
+  - "087beb1e9c101ff49129bb989e16328dd999b455"
+  - "3e5f3c8b4b7790d39d9cd0537e8a47d114b75d2a"
+  Build:
+  - "0.1"
+  - "0.1"
+  SelectedPlatformStudio:
+  - "ArmNomads Games"
+  - "ArmNomads Games"
+  SelectedPlatformGame:
+  - "Long Tube"
+  - "Long Tube(Android)"
+  SelectedPlatformGameID: 340C01004C160100
+  SelectedStudio: 0500000005000000
+  SelectedGame: 080000000A000000
+  NewVersion: "5.1.6"
+  Changes: "5.1.6\n- thread bug fix for desktop\n\n5.1.5\n- session length fixed
+  for desktop platforms\n\n5.1.4\n- small correction for logging for desktop\n\n5.1.3\n-
+  small timing fix for initialization\n\n5.1.2\n- fixes to events not
+  being sent for desktop platforms\n\n5.1.1\n- ios and tvos wrapper fixes\n\n5.1.0\n-
+  added enable\x2fdisable event submission function\n\n5.0.12\n- UnityWebRequest
+  fixes\n\n5.0.11\n- fixed 2018.3 www deprecated warnings\n\n5.0.10\n- fixed
+  business event validation\n\n5.0.9\n- fixed json deserializing for desktop
+  platforms\n\n5.0.8\n- fixed freeze bug on exit for desktop platforms\n\n5.0.7\n-
+  added gameanalytics android aar library file instead of jar file\n\n5.0.6\n-
+  tvOS bug fixes"
+  SignUpOpen: 0
+  StudioName: 
+  GameName: 
+  EmailGA: "armnomads@gmail.com"
+  IntroScreen: 0
+  InfoLogEditor: 1
+  InfoLogBuild: 1
+  VerboseLogBuild: 0
+  UseManualSessionHandling: 0
+  SendExampleGameDataToMyGame: 0
+  InternetConnectivity: 0
+  CustomDimensions01: []
+  CustomDimensions02: []
+  CustomDimensions03: []
+  ResourceItemTypes: []
+  ResourceCurrencies: []
+  LastCreatedGamePlatform: 0
+  Platforms: 080000000B000000
+  CurrentInspectorState: 1
+  ClosedHints: 
+  DisplayHints: 0
+  DisplayHintsScrollState: {x: 0, y: 0}
+  Logo: {fileID: 2800000, guid: 75f94d7ada5a4faabd43278ad61107c1, type: 3}
+  UpdateIcon: {fileID: 0}
+  InfoIcon: {fileID: 0}
+  DeleteIcon: {fileID: 0}
+  GameIcon: {fileID: 0}
+  HomeIcon: {fileID: 0}
+  InstrumentIcon: {fileID: 0}
+  QuestionIcon: {fileID: 0}
+  UserIcon: {fileID: 0}
+  AmazonIcon: {fileID: 0}
+  GooglePlayIcon: {fileID: 0}
+  iosIcon: {fileID: 0}
+  macIcon: {fileID: 0}
+  windowsPhoneIcon: {fileID: 0}
+  UsePlayerSettingsBuildNumber: 0
+  SubmitErrors: 1
+  MaxErrorCount: 10
+  SubmitFpsAverage: 1
+  SubmitFpsCritical: 1
+  IncludeGooglePlay: 1
+  FpsCriticalThreshold: 20
+  FpsCirticalSubmitInterval: 1
+  PlatformFoldOut: 0101
+  CustomDimensions01FoldOut: 0
+  CustomDimensions02FoldOut: 0
+  CustomDimensions03FoldOut: 0
+  ResourceItemTypesFoldOut: 0
+  ResourceCurrenciesFoldOut: 0
