@@ -350,12 +350,15 @@ public class MenuManager : MonoBehaviour
 
 	private static TweenCallback __f__am_cache0;
 
+	private GameObject menuSky;
+
 	private void Awake()
 	{
 		MenuManager.instance = this;
 		EventManager.OnLevelComplete += new EventManager.LevelComplete(this.OnLevelComplete);
 		EventManager.OnLevelComplete += new EventManager.LevelComplete(this.CallRateUs);
 		EventManager.OnGameOver += new EventManager.GameOver(this.OnGameOver);
+		this.HideShareButton();
 	}
 
 	private void Start()
@@ -363,7 +366,63 @@ public class MenuManager : MonoBehaviour
 		this.Load();
 		this.startPanel.SetActive(true);
 		this.levelCompletePanel.SetActive(false);
-		this.SocialButtonAnimPlay();
+		this.HideShareButton();
+		this.EnsureMenuSky();
+	}
+
+	private void LateUpdate()
+	{
+		if (this.menuSky != null && this.startPanel != null && this.menuSky.activeSelf != this.startPanel.activeSelf)
+			this.menuSky.SetActive(this.startPanel.activeSelf);
+	}
+
+	private void HideShareButton()
+	{
+		if (this.startPanel == null)
+			return;
+
+		Transform socialButton = this.startPanel.transform.Find("SocialButton");
+		if (socialButton != null)
+			socialButton.gameObject.SetActive(false);
+	}
+
+	private void EnsureMenuSky()
+	{
+		if (this.startPanel == null)
+			return;
+
+		Transform canvas = this.startPanel.transform.parent;
+		if (canvas == null)
+			return;
+
+		Transform existing = canvas.Find("MenuSky");
+		if (existing != null)
+		{
+			this.menuSky = existing.gameObject;
+			existing.SetAsFirstSibling();
+			return;
+		}
+
+		Sprite sprite = Resources.Load<Sprite>("ShopIAP/bg_app");
+		if (sprite == null)
+			return;
+
+		GameObject sky = new GameObject("MenuSky", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+		sky.transform.SetParent(canvas, false);
+		sky.transform.SetAsFirstSibling();
+		RectTransform rect = sky.GetComponent<RectTransform>();
+		rect.anchorMin = Vector2.zero;
+		rect.anchorMax = Vector2.one;
+		rect.offsetMin = Vector2.zero;
+		rect.offsetMax = Vector2.zero;
+		rect.localScale = Vector3.one;
+		Image image = sky.GetComponent<Image>();
+		image.sprite = sprite;
+		image.type = Image.Type.Simple;
+		image.preserveAspect = false;
+		image.raycastTarget = false;
+		image.color = Color.white;
+		this.menuSky = sky;
 	}
 
 	private void Update()
@@ -442,7 +501,6 @@ public class MenuManager : MonoBehaviour
 		this.GamePlayPanelAnim(false);
 		this.levelCompletePanel.SetActive(true);
 		this.LevelCompletePanelAnim();
-        StartCoroutine(ShowAds());
         DOVirtual.DelayedCall(2f, delegate
 		{
 			if (this.levelCompletePanel.activeInHierarchy && !this.comparePanel.activeInHierarchy)
@@ -469,14 +527,7 @@ public class MenuManager : MonoBehaviour
 	{
 		this.startPanel.SetActive(true);
 		this.GamePlayPanelAnim(false);
-        StartCoroutine(ShowAds());
 	}
-
-    IEnumerator ShowAds()
-    {
-        yield return new WaitForSeconds(1.0f);
-        AdsControl.Instance.showAds();
-    }
 
     public void OnSoundButton()
 	{

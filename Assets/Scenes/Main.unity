@@ -1518,7 +1518,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1789995743371350790
 GameObject:
   m_ObjectHideFlags: 0
@@ -3600,9 +3600,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1789995743371352734}
   - component: {fileID: 1789995743371356795}
-  - component: {fileID: 1789995743371352654}
   m_Layer: 0
-  m_Name: AdsControl
+  m_Name: Rateus
   m_TagString: 
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33662,25 +33661,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1789995743371352664}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1789995743371352654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1789995743371350908}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5ffc6fbf0c8b4b0c8ef69dfbedc37d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  AdmobID_Android: ca-app-pub-1831297251786933/6195357408
-  AdmobID_IOS: ca-app-pub-1831297251786933/9148823802
-  BannerID_Android: ca-app-pub-1831297251786933/2227659402
-  BannerID_IOS: ca-app-pub-1831297251786933/9750926202
-  UnityID_Android: 1142979
-  UnityID_IOS: 1142980
-  UnityZoneID: rewardedVideo
 --- !u!4 &1789995743371352655
 Transform:
   m_ObjectHideFlags: 0

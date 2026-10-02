@@ -48,6 +48,10 @@ public class Tube : MonoBehaviour
 
 	private Sequence move;
 
+	private bool movePausedForShop;
+
+	private float moveTimeScaleBeforePause = 1f;
+
 	private int lastFoot;
 
 	public bool lastReversedTube;
@@ -61,10 +65,24 @@ public class Tube : MonoBehaviour
 
 	private void Update()
 	{
-		if (this.canClick)
-		{
-			this.CheckPerfectLine();
-		}
+		if (!this.canClick || ShopScreenIAP.IsBlockingInput())
+			return;
+
+		this.CheckPerfectLine();
+		if (!this.HasPassedTapZone())
+			return;
+
+		this.canClick = false;
+		if (this.move != null && this.move.IsActive())
+			this.move.Kill(false);
+		this.OnGameOver();
+	}
+
+	private bool HasPassedTapZone()
+	{
+		float passed = this.startPositionY - this.truePart.position.y;
+		float zone = this.truePart.lossyScale.y * 2f;
+		return passed > zone;
 	}
 
 	public void Init()
@@ -118,8 +136,6 @@ public class Tube : MonoBehaviour
 
 	private void Move()
 	{
-		float num = UnityEngine.Random.Range(LevelManager.instance.currentLevelValues.tubeMoveDownSpeedFactor.x, LevelManager.instance.currentLevelValues.tubeMoveDownSpeedFactor.y) / 100f;
-		float duration = Generator.instance.tubeMoveDownSpeed - Generator.instance.tubeMoveDownSpeed * num;
 		if (Generator.instance.perfect)
 		{
 			Generator.instance.EndPerfectMode();
@@ -140,20 +156,45 @@ public class Tube : MonoBehaviour
 		{
 			this.move = DOTween.Sequence();
 			this.move.Append(base.transform.DOMoveY(this.topPosition, Generator.instance.tubeMoveUpSpeed, false));
-			this.move.AppendCallback(delegate
-			{
-				this.canClick = true;
-				Generator.instance.lastTube.GetComponent<Tube>().clickCircle.DOScale(1.6f, 0.2f);
-			});
-			this.move.Append(base.transform.DOMoveY(this.startPositionY, duration, false));
-			this.move.OnComplete(delegate
-			{
-				if (!Generator.instance.gameOver)
-				{
-					this.OnGameOver();
-				}
-			});
+			this.move.AppendCallback(new TweenCallback(this.StartFall));
 		}
+	}
+
+	private void StartFall()
+	{
+		float num = UnityEngine.Random.Range(LevelManager.instance.currentLevelValues.tubeMoveDownSpeedFactor.x, LevelManager.instance.currentLevelValues.tubeMoveDownSpeedFactor.y) / 100f;
+		float duration = Generator.instance.tubeMoveDownSpeed - Generator.instance.tubeMoveDownSpeed * num;
+		this.canClick = true;
+		if (Generator.instance.lastTube != null)
+			Generator.instance.lastTube.GetComponent<Tube>().clickCircle.DOScale(1.6f, 0.2f);
+
+		this.move = DOTween.Sequence();
+		this.move.Append(base.transform.DOMoveY(this.startPositionY, duration, false));
+		this.move.OnComplete(delegate
+		{
+			if (!Generator.instance.gameOver)
+				this.OnGameOver();
+		});
+	}
+
+	public void ReplayDrop()
+	{
+		bool falling = !this.first && !this.gameOver && this.move != null && this.move.IsActive();
+		if (this.move != null && this.move.IsActive())
+		{
+			this.move.OnComplete(null);
+			this.move.Kill(false);
+		}
+
+		this.movePausedForShop = false;
+		DOTween.Play(base.transform);
+		if (!falling)
+			return;
+
+		Vector3 position = base.transform.position;
+		position.y = this.topPosition;
+		base.transform.position = position;
+		this.StartFall();
 	}
 
 	private void CheckPerfectLine()
@@ -184,6 +225,7 @@ public class Tube : MonoBehaviour
 		{
 			return;
 		}
+		this.canClick = false;
 	//MonoBehaviour.print("CHECK POSITION");
 		Generator.instance.lastTube.GetComponent<Tube>().clickCircle.DOScale(0f, 0.2f);
 		float num = this.startPositionY - this.truePart.position.y;
@@ -242,9 +284,10 @@ public class Tube : MonoBehaviour
 			return;
 		}
 		this.gameOver = true;
+		this.canClick = false;
 		//MonoBehaviour.print("GAME OVER");
 		Color truePartDefaultColor = Generator.instance.truePartDefaultColor;
-		this.move.timeScale = 0f;
+		this.SetMoveTimeScale(0f);
 		this.truePartRend.sharedMaterial = Generator.instance.topPartMaterial;
 		Sequence s = DOTween.Sequence();
 		s.Append(Generator.instance.topPartMaterial.DOColor(Color.red, 0.2f));
@@ -253,14 +296,40 @@ public class Tube : MonoBehaviour
 		s.Append(Generator.instance.topPartMaterial.DOColor(truePartDefaultColor, 0.2f));
 		s.AppendCallback(delegate
 		{
-			this.move.timeScale = 10f;
+			this.SetMoveTimeScale(10f);
 			this.truePart.gameObject.SetActive(false);
 			this.perfectPart.gameObject.SetActive(false);
-			if (!Generator.instance.CheckSecondChance())
-			{
-				EventManager.CallOnGameOver();
-			}
+			EventManager.CallOnGameOver();
 		});
+	}
+
+	private void SetMoveTimeScale(float timeScale)
+	{
+		if (this.move != null && this.move.IsActive())
+			this.move.timeScale = timeScale;
+	}
+
+	public void SetPaused(bool paused)
+	{
+		if (this.move == null || !this.move.IsActive())
+			return;
+
+		if (paused)
+		{
+			if (this.movePausedForShop)
+				return;
+
+			this.movePausedForShop = true;
+			this.moveTimeScaleBeforePause = this.move.timeScale;
+			this.move.timeScale = 0f;
+			return;
+		}
+
+		if (!this.movePausedForShop)
+			return;
+
+		this.movePausedForShop = false;
+		this.move.timeScale = this.moveTimeScaleBeforePause;
 	}
 
 	public void GiveSecondChance()

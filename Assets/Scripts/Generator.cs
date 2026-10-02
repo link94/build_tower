@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class Generator : MonoBehaviour
@@ -116,6 +117,8 @@ public class Generator : MonoBehaviour
 
 	private Sequence secondChance;
 
+	private bool secondChanceResolved;
+
 	[Header(" ")]
 	public float generationCount;
 
@@ -138,6 +141,10 @@ public class Generator : MonoBehaviour
 	private float reverseActionSpeedCoefficient;
 
 	public int coinFromTube = 1;
+
+	private const float FloatingTextLifetime = 1.05f;
+
+	private readonly List<GameObject> floatingTexts = new List<GameObject>();
 
 	[Header("Tube Foots"), SerializeField]
 	public float tubeFootsGoOutTime;
@@ -188,8 +195,29 @@ public class Generator : MonoBehaviour
 		}
 		if (Input.GetMouseButtonDown(0) && this.currentTube != null && !this.gameOver && !LevelManager.instance.levelComplete)
 		{
+			if (ShopScreenIAP.IsBlockingInput() || IsPointerOverUi())
+				return;
+
 			this.currentTube.CheckPosition();
 		}
+	}
+
+	private static bool IsPointerOverUi()
+	{
+		EventSystem eventSystem = EventSystem.current;
+		if (eventSystem == null)
+			return false;
+
+		if (Input.touchCount > 0)
+		{
+			for (int i = 0; i < Input.touchCount; i++)
+			{
+				if (eventSystem.IsPointerOverGameObject(Input.GetTouch(i).fingerId))
+					return true;
+			}
+		}
+
+		return eventSystem.IsPointerOverGameObject();
 	}
 
 	private void SetDefaultColors()
@@ -253,10 +281,30 @@ public class Generator : MonoBehaviour
 		}
 	}
 
+	public void RegisterFloatingText(GameObject popup)
+	{
+		if (popup == null)
+			return;
+
+		this.floatingTexts.Add(popup);
+		UnityEngine.Object.Destroy(popup, FloatingTextLifetime);
+	}
+
+	public void ClearFloatingTexts()
+	{
+		for (int i = 0; i < this.floatingTexts.Count; i++)
+		{
+			if (this.floatingTexts[i] != null)
+				UnityEngine.Object.Destroy(this.floatingTexts[i]);
+		}
+		this.floatingTexts.Clear();
+	}
+
 	public void StartPerfectMode()
 	{
 		GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(this.perfectTextPrefab);
 		gameObject.transform.position = new Vector3(gameObject.transform.position.x, this.currentTube.transform.position.y, gameObject.transform.position.z);
+		this.RegisterFloatingText(gameObject);
 		this.coinFromTube++;
 		if (this.coinFromTube > 10)
 		{
@@ -322,6 +370,7 @@ public class Generator : MonoBehaviour
 
 	private void DeleteAll()
 	{
+		this.ClearFloatingTexts();
 		for (int i = 0; i < this.allTubes.Count; i++)
 		{
 			UnityEngine.Object.Destroy(this.allTubes[i].gameObject);
@@ -360,6 +409,7 @@ public class Generator : MonoBehaviour
 
 	public void OnPlay()
 	{
+		this.ClearFloatingTexts();
 		this.SetDefaultColors();
 		this.perfectContineus = false;
 		if (this.perfect)
@@ -368,6 +418,8 @@ public class Generator : MonoBehaviour
 			this.tubeMoveUpSpeed *= 2f;
 		}
 		this.coinFromTube = 1;
+		if (this.gameOver && GameManager.instance != null)
+			GameManager.instance.ResetRunScore();
 		if (this.gameOver || LevelManager.instance.levelComplete)
 		{
 			this.DeleteAll();
@@ -457,40 +509,89 @@ public class Generator : MonoBehaviour
 
 	public bool CheckSecondChance()
 	{
-		if (LevelManager.instance.levelCompletePercent > 50)
-		{
-			this.SeconChancePanelAnim();
-			return true;
-		}
+		this.StopSecondChanceTweens();
+		if (this.secondChancePanel != null)
+			this.secondChancePanel.SetActive(false);
 		return false;
 	}
 
 	private void SeconChancePanelAnim()
 	{
-		this.secondChance.Kill(false);
+		this.StopSecondChanceTweens();
+		this.secondChanceResolved = false;
 		this.secondChancePanel.SetActive(true);
 		this.secondChanceTimerFill.fillAmount = 1f;
 		this.secondChanceAnim.localScale = Vector3.one;
+		this.secondChanceAnim.DOScale(1.2f, 0.5f).SetLoops(6, LoopType.Yoyo);
 		this.secondChance = DOTween.Sequence();
-		this.secondChance.Append(this.secondChanceAnim.DOScale(1.2f, 0.5f).SetLoops(6, LoopType.Yoyo));
-		this.secondChance.Insert(0f, this.secondChanceTimerFill.DOFillAmount(0f, 3f).SetEase(Ease.Linear));
+		this.secondChance.Append(this.secondChanceTimerFill.DOFillAmount(0f, 3f).SetEase(Ease.Linear));
 		this.secondChance.OnComplete(new TweenCallback(this.OnSkipButton));
-		this.secondChance.OnKill(delegate
-		{
-			this.secondChancePanel.SetActive(false);
-		});
 	}
 
 	public void OnShowVideoButton()
 	{
-		
-			this.secondChance.Kill(false);
-		
+		this.StopSecondChanceTweens();
+		if (this.secondChancePanel != null)
+			this.secondChancePanel.SetActive(false);
 	}
 
 	public void OnSkipButton()
 	{
-		this.secondChance.Complete(true);
+		if (this.secondChanceResolved)
+			return;
+
+		this.secondChanceResolved = true;
+		this.StopSecondChanceTweens();
+		if (this.secondChancePanel != null)
+			this.secondChancePanel.SetActive(false);
 		EventManager.CallOnGameOver();
+	}
+
+	private void StopSecondChanceTweens()
+	{
+		if (this.secondChanceAnim != null)
+			this.secondChanceAnim.DOKill(false);
+
+		if (this.secondChance == null)
+			return;
+
+		Sequence sequence = this.secondChance;
+		this.secondChance = null;
+		sequence.OnComplete(null);
+		sequence.OnKill(null);
+		if (sequence.IsActive())
+			sequence.Kill(false);
+	}
+
+	public void SetGameplayPaused(bool paused)
+	{
+		if (paused)
+		{
+			if (this.currentTube != null)
+				this.currentTube.SetPaused(true);
+
+			SetTargetPaused(this.currentTube != null ? this.currentTube.transform : null, true);
+			SetTargetPaused(this.lastTube, true);
+			if (Camera.main != null)
+				SetTargetPaused(Camera.main.transform, true);
+			return;
+		}
+
+		SetTargetPaused(this.lastTube, false);
+		if (Camera.main != null)
+			SetTargetPaused(Camera.main.transform, false);
+		if (this.currentTube != null)
+			this.currentTube.ReplayDrop();
+	}
+
+	private static void SetTargetPaused(Transform target, bool paused)
+	{
+		if (target == null)
+			return;
+
+		if (paused)
+			DOTween.Pause(target);
+		else
+			DOTween.Play(target);
 	}
 }
